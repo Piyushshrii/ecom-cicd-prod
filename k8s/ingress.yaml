@@ -4,29 +4,23 @@ metadata:
   name: web-app-ingress
   namespace: ecommerce
   annotations:
-    kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    cert-manager.io/cluster-issuer: "letsencrypt-prod" # Optional TLS
+    kubernetes.io/ingress.class: "ingress-ngnix"   # or "nginx" if using ingress-nginx 
 spec:
   rules:
   - host: piyush-web-app.co.in
     http:
       paths:
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: backend
-            port:
-              number: 8000
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: frontend
+            name: frontend-service
             port:
               number: 80
-  tls:
-  - hosts:
-    - piyush-web-app.co.in
-    secretName: web-app-tls
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 8000
