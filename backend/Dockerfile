@@ -4,19 +4,21 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install system deps
-RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+ && rm -rf /var/lib/apt/lists/*
 
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy project files
 COPY . .
 
 # Ensure STATIC_ROOT and MEDIA_ROOT exist
 RUN mkdir -p /app/staticfiles /app/media
-
-# Run collectstatic at build time
-RUN python manage.py collectstatic --noinput
 
 # Build args from Jenkins
 ARG SECRET_KEY
@@ -25,12 +27,14 @@ ARG STRIPE_SECRET_KEY
 ARG ALLOWED_HOSTS
 ARG CORS_ALLOWED_ORIGINS
 
-ENV SECRET_KEY=$SECRET_KEY
-ENV DATABASE_URL=$DATABASE_URL
-ENV STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
-ENV ALLOWED_HOSTS=$ALLOWED_HOSTS
-ENV CORS_ALLOWED_ORIGINS=$CORS_ALLOWED_ORIGINS
+# Export environment variables
+ENV SECRET_KEY=$SECRET_KEY \
+    DATABASE_URL=$DATABASE_URL \
+    STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
+    ALLOWED_HOSTS=$ALLOWED_HOSTS \
+    CORS_ALLOWED_ORIGINS=$CORS_ALLOWED_ORIGINS
 
-# Only run migrations + gunicorn at runtime
+# Run migrations, collect static, and start Gunicorn
 CMD python manage.py migrate --noinput && \
+    python manage.py collectstatic --noinput && \
     gunicorn djackets_django.wsgi:application --bind 0.0.0.0:8000
