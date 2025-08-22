@@ -14,13 +14,14 @@ spec:
         app: backend
     spec:
       containers:
-      - name: backend
-        image: IMAGE_BACKEND   # <-- pipeline replaces
-        ports:
-        - containerPort: 8000
-        envFrom:
-        - secretRef:
-            name: backend-secrets
+        - name: backend
+          image: ${BACKEND_IMAGE}   # <- rendered by envsubst
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: backend-secrets
 ---
 apiVersion: v1
 kind: Service
@@ -31,6 +32,6 @@ spec:
   selector:
     app: backend
   ports:
-  - port: 8000
-    targetPort: 8000
-  type: ClusterIP   # internal only, used by frontend + ingress
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
