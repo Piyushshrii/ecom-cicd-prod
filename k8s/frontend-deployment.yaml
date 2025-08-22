@@ -14,13 +14,14 @@ spec:
         app: frontend
     spec:
       containers:
-      - name: frontend
-        image: IMAGE_FRONTEND   # <-- pipeline replaces
-        ports:
-        - containerPort: 8080
-        envFrom:
-        - secretRef:
-            name: frontend-secrets
+        - name: frontend
+          image: ${FRONTEND_IMAGE}  # <- rendered by envsubst
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: frontend-secrets
 ---
 apiVersion: v1
 kind: Service
@@ -31,6 +32,6 @@ spec:
   selector:
     app: frontend
   ports:
-  - port: 80
-    targetPort: 8080
-  type: ClusterIP   # exposed via Ingress
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
